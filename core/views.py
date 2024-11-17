@@ -4,10 +4,10 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .models import Usuario, Inventario, OrdenTrabajo
+from .models import Inventario, OrdenTrabajo
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
-from .forms import OrdenTrabajoForm, UsuarioForm
+from .forms import OrdenTrabajoForm
 from django.views.generic import ListView, CreateView
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -15,6 +15,9 @@ from .forms import OrdenTrabajoForm
 from .models import Cliente
 from .forms import ClienteForm
 from datetime import timedelta, datetime
+from .forms import CustomUserForm
+from .forms import CustomUserCreationForm
+
 
 some_date = datetime.now() - timedelta(days=7)
 # Página para seleccionar el rol (Administrador o Usuario)
@@ -84,7 +87,7 @@ def login_usuario(request):
 
 def dashboard(request):
     # Datos de ejemplo para mostrar en la página
-    total_usuarios = Usuario.objects.count()
+    total_usuarios = User.objects.count()
     total_ordenes = OrdenTrabajo.objects.count()
     total_inventario = Inventario.objects.count()
     total_clientes = Cliente.objects.count()  # Agregar el total de clientes
@@ -99,26 +102,39 @@ def dashboard(request):
         'ordenes': ordenes,
     })
 
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # Redirigir o mostrar un mensaje
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'register.html', {'form': form})
 
 def listar_usuarios(request):
     # Obtener todos los usuarios
-    usuarios = Usuario.objects.all()
+    usuarios = User.objects.all()
     
     # Pasar los usuarios a la plantilla
     return render(request, 'core/listar_usuarios.html', {'usuarios': usuarios})
 
 
 # Vista para crear un nuevo usuario
+from django.shortcuts import render, redirect
+from .forms import CustomUserForm
+
 def crear_usuario(request):
     if request.method == 'POST':
-        form = UsuarioForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()  # Guardar el usuario si el formulario es válido
-            return redirect('core/listar_usuarios')  # Redirigir a la página de lista de usuarios
+            form.save()
+            return redirect('listar_usuarios')  # Cambia según tu flujo
     else:
-        form = UsuarioForm()
+        form = CustomUserCreationForm()
 
     return render(request, 'core/crear_usuario.html', {'form': form})
+
 
 # Vista para editar un usuario existente
 def editar_usuario(request, user_id):
@@ -225,17 +241,17 @@ class ListarClientesView(ListView):
     
 class CrearClienteView(CreateView):
     model = Cliente
-    fields = ['nombre', 'email', 'telefono', 'direccion']
+    form_class = ClienteForm
     template_name = 'core/crear_cliente.html'
-    success_url = reverse_lazy('listar_clientes') 
+    success_url = reverse_lazy('listar_clientes')
 
 
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('listar_clientes')  # Redirige a la lista de clientes
+            form.save()  # Aquí se guarda el cliente en la base de datos
+            return redirect('core/listar_clientes')  # Redirige a la lista de clientes
     else:
         form = ClienteForm()
 
@@ -252,10 +268,10 @@ def editar_cliente(request, cliente_id):
         form = ClienteForm(instance=cliente)
     return render(request, 'core/editar_cliente.html', {'form': form, 'cliente': cliente})
 
-def eliminar_cliente(request, cliente_id):
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-    cliente.delete()
-    return redirect('core/cliente_list.html') 
+def eliminar_cliente(request, rut):
+    cliente = get_object_or_404(Cliente, rut=rut)  # Obtener el cliente por su rut
+    cliente.delete()  # Eliminar el cliente
+    return redirect('listar_clientes')
 
 def listar_ordenes(request):
     # Obtener el RUT del parámetro GET

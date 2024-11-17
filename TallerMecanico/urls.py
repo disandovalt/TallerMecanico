@@ -51,4 +51,5 @@ urlpatterns = [
     path('clientes/crear/', CrearClienteView.as_view(), name='crear_cliente'),
     path('clientes/editar/<str:rut>/', views.editar_cliente, name='editar_cliente'),
     path('clientes/eliminar/<str:rut>/', views.eliminar_cliente, name='eliminar_cliente'),
+
 ]
