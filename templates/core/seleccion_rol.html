@@ -1,16 +1,23 @@
+{% load static %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seleccionar Rol</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>Selecciona tu rol</h1>
-    <form method="post">
+
+<div id="seleccion_rol_form">
+    <h2>Selecciona tu rol</h2>
+    <form method="POST">
         {% csrf_token %}
-        <button type="submit" name="rol" value="admin">Administrador</button>
-        <button type="submit" name="rol" value="usuario">Usuario</button>
+        <input type="submit" name="rol" value="admin" />
+        <input type="submit" name="rol" value="usuario" />
     </form>
+</div>
+
 </body>
 </html>

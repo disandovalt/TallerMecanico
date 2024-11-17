@@ -1,17 +1,29 @@
+{% load static %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>Inicio de Sesión - {{ rol|title }}</h1>
-    <form method="post">
+
+<div class="container">
+    <h2>Iniciar sesión</h2>
+    
+    <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Iniciar Sesión</button>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <input type="submit" value="Iniciar sesión" />
     </form>
-    <a href="{% url 'seleccion_rol' %}">Volver</a>
+</div>
+
 </body>
 </html>
