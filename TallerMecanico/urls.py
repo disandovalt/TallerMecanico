@@ -20,7 +20,8 @@ from core import views  # Importa las vistas de la aplicación
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.inicio, name='inicio'),  # Página principal
     path('', views.seleccion_rol, name='seleccion_rol'),
     path('login/', views.login_view, name='login'),
+    path('login/admin/', views.login_admin, name='login_admin'),
+    path('login/usuario/', views.login_usuario, name='login_usuario'),
 ]
