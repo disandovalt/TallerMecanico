@@ -20,6 +20,8 @@ from core import views
 from core.views import ListarClientesView
 from core.views import CrearClienteView
 from core.views import crear_orden_trabajo
+from core.views import EditarClienteView
+from core.views import editar_cliente, listar_clientes
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,7 +33,7 @@ urlpatterns = [
 
     path('listar_usuarios/', views.listar_usuarios, name='listar_usuarios'),
     path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
-    path('editar_usuario/<int:user_id>/', views.editar_usuario, name='editar_usuario'),
+    path('editar_usuario/<int:pk>/', views.editar_usuario, name='editar_usuario'),
     path('eliminar_usuario/<int:user_id>/', views.eliminar_usuario, name='eliminar_usuario'),
 
     # URLs para CRUD de Órdenes de Trabajo
@@ -49,7 +51,9 @@ urlpatterns = [
     path('clientes/', views.ListarClientesView.as_view(), name='listar_clientes'),
     path('clientes/', ListarClientesView.as_view(), name='listar_clientes'),
     path('clientes/crear/', CrearClienteView.as_view(), name='crear_cliente'),
-    path('clientes/editar/<str:rut>/', views.editar_cliente, name='editar_cliente'),
     path('clientes/eliminar/<str:rut>/', views.eliminar_cliente, name='eliminar_cliente'),
+
+    path('clientes/editar/<str:rut>/', editar_cliente, name='editar_cliente'),
+    path('clientes/', listar_clientes, name='listar_clientes'), 
 
 ]

@@ -4,68 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Administrador</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
     <div class="container mt-4">
-        <h1>Dashboard del Administrador</h1>
-        <div class="row">
+        <h1 class="mb-4">Dashboard del Administrador</h1>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="text-end">
+                <small class="text-muted">
+                    </small>
+            </div>
+        </div>
+        
+        <!-- Bloques de estadísticas -->
+        <div class="row mb-4">
             <!-- Bloque de Usuarios -->
             <div class="col-md-3">
-                <div class="card text-bg-primary mb-3">
+                <div class="card text-bg-primary mb-3 h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Usuarios</h5>
-                        <p class="card-text">Total: {{ total_usuarios }}</p>
-                        <!-- Botón para ver la lista de usuarios -->
-                        <a href="{% url 'listar_usuarios' %}" class="btn btn-primary">Ver Usuarios</a>
-                        <!-- Botón para crear un nuevo usuario -->
-                        <a href="{% url 'crear_usuario' %}" class="btn btn-success">Crear Usuario</a>
+                        <h5 class="card-title"><i class="fas fa-users me-2"></i>Usuarios</h5>
+                        <p class="card-text fs-2">{{ total_usuarios }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'listar_usuarios' %}" class="btn btn-light btn-sm">Ver Usuarios</a>
+                            <a href="{% url 'crear_usuario' %}" class="btn btn-success btn-sm">Crear Usuario</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Bloque de Órdenes -->
             <div class="col-md-3">
-                <div class="card text-bg-success mb-3">
+                <div class="card text-bg-success mb-3 h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Órdenes de Trabajo</h5>
-                        <p class="card-text">Total: {{ total_ordenes }}</p>
-                        <!-- Botón para ver la lista de órdenes de trabajo -->
-                        <a href="{% url 'listar_ordenes' %}" class="btn btn-primary">Ver Órdenes</a>
-                        <!-- Botón para crear una nueva orden de trabajo -->
-                        <a href="{% url 'crear_orden_trabajo' %}" class="btn btn-success">Crear Orden</a>
+                        <h5 class="card-title"><i class="fas fa-clipboard-list me-2"></i>Órdenes</h5>
+                        <p class="card-text fs-2">{{ total_ordenes }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'listar_ordenes' %}" class="btn btn-light btn-sm">Ver Órdenes</a>
+                            <a href="{% url 'crear_orden_trabajo' %}" class="btn btn-success btn-sm">Crear Orden</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Bloque de Inventario -->
             <div class="col-md-3">
-                <div class="card text-bg-warning mb-3">
+                <div class="card text-bg-warning mb-3 h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Inventario</h5>
-                        <p class="card-text">Total productos: {{ total_inventario }}</p>
-                        <!-- Botón para ver la lista de productos en inventario -->
-                        <a href="{% url 'listar_inventarios' %}" class="btn btn-primary">Ver Inventario</a>
-                        <!-- Botón para agregar un nuevo producto -->
-                        <a href="{% url 'crear_inventario' %}" class="btn btn-success">Agregar Producto</a>
+                        <h5 class="card-title"><i class="fas fa-boxes me-2"></i>Inventario</h5>
+                        <p class="card-text fs-2">{{ total_inventario }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'listar_inventarios' %}" class="btn btn-light btn-sm">Ver Inventario</a>
+                            <a href="{% url 'crear_inventario' %}" class="btn btn-success btn-sm">Agregar</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Bloque de Clientes -->
             <div class="col-md-3">
-                <div class="card text-bg-info mb-3">
+                <div class="card text-bg-info mb-3 h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Clientes</h5>
-                        <p class="card-text">Total: {{ total_clientes }}</p>
-                        <!-- Botón para ver la lista de clientes -->
-                        <a href="{% url 'listar_clientes' %}" class="btn btn-primary">Ver Clientes</a>
-                        <!-- Botón para crear un nuevo cliente -->
-                        <a href="{% url 'crear_cliente' %}" class="btn btn-success">Crear Cliente</a>
+                        <h5 class="card-title"><i class="fas fa-user-friends me-2"></i>Clientes</h5>
+                        <p class="card-text fs-2">{{ total_clientes }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'listar_clientes' %}" class="btn btn-light btn-sm">Ver Clientes</a>
+                            <a href="{% url 'crear_cliente' %}" class="btn btn-success btn-sm">Crear Cliente</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Listado de Órdenes Recientes -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Órdenes Recientes</h5>
+                    <a href="{% url 'listar_ordenes' %}" class="btn btn-primary btn-sm">Ver todas</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Mecánico</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for orden in ordenes_recientes %}
+                            <tr>
+                                <td>#{{ orden.id }}</td>
+                                <td>{{ orden.cliente.nombre }}</td>
+                                <td>{{ orden.fecha|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge {% if orden.estado == 'Pendiente' %}bg-warning
+                                                      {% elif orden.estado == 'En Proceso' %}bg-info
+                                                      {% elif orden.estado == 'Completada' %}bg-success
+                                                      {% else %}bg-secondary{% endif %}">
+                                        {{ orden.estado }}
+                                    </span>
+                                </td>
+                                <td>{{ orden.mecanico.get_full_name }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'editar_orden' orden.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'eliminar_orden' orden.id %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-3">
+                                    <i class="fas fa-info-circle me-2"></i>No hay órdenes recientes
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Scripts de Bootstrap y Font Awesome -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

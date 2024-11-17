@@ -17,6 +17,20 @@ from .forms import ClienteForm
 from datetime import timedelta, datetime
 from .forms import CustomUserForm
 from .forms import CustomUserCreationForm
+from django.views import View
+from django.utils import timezone
+from datetime import datetime
+from django.utils.formats import date_format
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required
+from .permissions import setup_roles_and_permissions, role_required
+from django.db.models import Count
+from .forms import UsuarioEditForm
+from django.contrib.auth import get_user_model
+from core.forms import CustomUserCreationForm
+
+User = get_user_model()
+usuarios = User.objects.all()
 
 
 some_date = datetime.now() - timedelta(days=7)
@@ -85,23 +99,36 @@ def login_usuario(request):
     
     return render(request, 'core/login_usuario.html')
 
+@login_required
 def dashboard(request):
-    # Datos de ejemplo para mostrar en la página
-    total_usuarios = User.objects.count()
-    total_ordenes = OrdenTrabajo.objects.count()
-    total_inventario = Inventario.objects.count()
-    total_clientes = Cliente.objects.count()  # Agregar el total de clientes
+    # Obtener la fecha actual
+    hoy = timezone.now()
+    hace_30_dias = hoy - timedelta(days=30)
 
-    ordenes = OrdenTrabajo.objects.filter(fecha__gte=some_date)
-    
-    return render(request, 'core/admin_dashboards.html', {
-        'total_usuarios': total_usuarios,
-        'total_ordenes': total_ordenes,
-        'total_inventario': total_inventario,
-        'total_clientes': total_clientes,
-        'ordenes': ordenes,
-    })
+    # Estadísticas generales
+    context = {
+        'total_usuarios': User.objects.count(),
+        'total_ordenes': OrdenTrabajo.objects.count(),
+        'total_inventario': Inventario.objects.count(),
+        'total_clientes': Cliente.objects.count(),
+        
+        # Órdenes recientes
+        'ordenes_recientes': OrdenTrabajo.objects.select_related('cliente').order_by('-fecha')[:10],
+        
+        # Estadísticas de estados de órdenes
+        'estados_ordenes': OrdenTrabajo.objects.values('estado').annotate(
+            total=Count('id')
+        ),
+        
+        # Órdenes por día (últimos 30 días)
+        'ordenes_por_dia': OrdenTrabajo.objects.filter(
+            fecha__gte=hace_30_dias
+        ).values('fecha__date').annotate(
+            total=Count('id')
+        ).order_by('fecha__date'),
+    }
 
+    return render(request, 'core/admin_dashboards.html', context)
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -245,6 +272,15 @@ class CrearClienteView(CreateView):
     template_name = 'core/crear_cliente.html'
     success_url = reverse_lazy('listar_clientes')
 
+class EditarClienteView(View):
+    def get(self, request, rut):
+        cliente = get_object_or_404(Cliente, rut=rut)
+        return render(request, 'editar_cliente.html', {'cliente': cliente})
+
+    def post(self, request, rut):
+        # Lógica para guardar cambios
+        pass
+
 
 def crear_cliente(request):
     if request.method == 'POST':
@@ -257,16 +293,19 @@ def crear_cliente(request):
 
     return render(request, 'core/crear_cliente.html', {'form': form})
 
-def editar_cliente(request, cliente_id):
-    cliente = get_object_or_404(Cliente, id=cliente_id)
-    if request.method == "POST":
-        form = ClienteForm(request.POST, instance=cliente)
-        if form.is_valid():
-            form.save()
-            return redirect('cliente_list') 
-    else:
-        form = ClienteForm(instance=cliente)
-    return render(request, 'core/editar_cliente.html', {'form': form, 'cliente': cliente})
+def editar_cliente(request, rut):
+    cliente = get_object_or_404(Cliente, rut=rut)
+
+    if request.method == 'POST':
+        cliente.nombre = request.POST['nombre']
+        cliente.telefono = request.POST['telefono']
+        cliente.email = request.POST['email']
+        cliente.direccion = request.POST['direccion']
+        cliente.save()
+        # Corregimos la redirección para usar el nombre de la URL
+        return redirect('listar_clientes')  # Este debe coincidir con el name en urls.py
+
+    return render(request, 'core/editar_cliente.html', {'cliente': cliente})
 
 def eliminar_cliente(request, rut):
     cliente = get_object_or_404(Cliente, rut=rut)  # Obtener el cliente por su rut
@@ -286,3 +325,104 @@ def listar_ordenes(request):
     return render(request, 'core/listar_ordenes.html', {
         'ordenes': ordenes,
     })
+
+@permission_required('app.add_ordentrabajo')
+def vista_restringida(request):
+    # Lógica de la vista
+    return render(request, 'some_template.html')
+
+
+@login_required
+@role_required(['Administrador'])
+def configurar_roles(request):
+    setup_roles_and_permissions()
+    messages.success(request, 'Roles y permisos configurados exitosamente')
+    return redirect('admin:index')
+
+@login_required
+@role_required(['Mecánico'])
+def vista_mecanico(request):
+    # Solo accesible por mecánicos
+    pass
+
+@login_required
+@role_required(['Recepcionista'])
+def vista_recepcionista(request):
+    # Solo accesible por recepcionistas
+    pass
+
+@login_required
+@role_required(['Mecánico', 'Recepcionista'])
+def vista_compartida(request):
+    # Accesible por ambos roles
+    pass
+
+
+def editar_usuario(request, pk):
+    usuario = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        form = UsuarioEditForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_usuarios')  # Ajusta la URL según tu aplicación
+    else:
+        form = UsuarioEditForm(instance=usuario)
+    return render(request, 'core/editar_usuario.html', {'form': form})
+
+
+from django import forms
+from core.models import Usuario
+
+from django.contrib.auth.models import Group
+from core.forms import UsuarioEditForm
+
+from core.forms import UsuarioForm
+
+def crear_usuario(request):
+    if request.method == 'POST':
+        form = UsuarioForm(request.POST)
+        
+        # Validación de contraseñas
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            form.add_error('confirm_password', 'Las contraseñas no coinciden')
+
+        if form.is_valid():
+            # Crear el usuario pero no lo guardes todavía
+            usuario = form.save(commit=False)
+            
+            # Encriptar la contraseña
+            usuario.set_password(password)
+            
+            # Asegurarte de que el rol esté en minúsculas antes de asignarlo
+            rol = form.cleaned_data['rol'].lower()
+            if rol not in ['mecanico', 'recepcionista', 'usuario', 'administrador']:
+                form.add_error('rol', 'Rol no válido')
+            else:
+                # Asignar el grupo basado en el valor del rol
+                group = Group.objects.get(name=rol.capitalize())
+                usuario.groups.add(group)
+                
+                # Guardar el usuario
+                usuario.save()
+
+            return redirect('listar_usuarios')  # Redirige a la lista de usuarios
+    else:
+        form = UsuarioForm()
+    return render(request, 'crear_usuario.html', {'form': form})
+
+@login_required
+@role_required(['Administrador'])  # Solo administradores pueden crear usuarios
+def crear_usuario(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()  # Guarda el usuario con los datos del formulario
+            messages.success(request, f'Usuario {user.email} creado exitosamente')  # Usar 'email' en lugar de 'username'
+            return redirect('listar_usuarios')  # Redirige a la lista de usuarios
+    else:
+        form = CustomUserCreationForm()  # Si es un GET, solo muestra el formulario vacío
+
+    return render(request, 'core/crear_usuario.html', {'form': form})
