@@ -3,6 +3,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="stylesheet" href="{% static 'css/rol.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seleccionar Rol</title>
@@ -16,8 +17,13 @@
         {% csrf_token %}
         <input type="submit" name="rol" value="admin" />
         <input type="submit" name="rol" value="usuario" />
+        
     </form>
+    
+    
 </div>
+
+
 
 </body>
 </html>

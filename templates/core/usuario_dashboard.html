@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Dashboard de Usuario</h2>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if cliente %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title">Información del Cliente</h3>
+                <p><strong>Nombre:</strong> {{ cliente.nombre }} {{ cliente.apellido }}</p>
+                <p><strong>RUT:</strong> {{ cliente.rut }}</p>
+                <p><strong>Email:</strong> {{ cliente.email }}</p>
+                <p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Mis Órdenes de Trabajo</h3>
+                {% if ordenes %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Número de Orden</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for orden in ordenes %}
+                            <tr>
+                                <td>#{{ orden.id }}</td>
+                                <td>{{ orden.fecha|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <span class="badge {% if orden.estado == 'Pendiente' %}bg-warning
+                                                      {% elif orden.estado == 'En Proceso' %}bg-info
+                                                      {% else %}bg-success{% endif %}">
+                                        {{ orden.estado }}
+                                    </span>
+                                </td>
+                                <td>{{ orden.descripcion }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">No tienes órdenes de trabajo registradas.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

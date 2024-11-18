@@ -1,0 +1,80 @@
+/* Estilos generales */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #6e7dff, #a2a8f3);
+    color: #333;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#seleccion_rol_form {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#seleccion_rol_form h2 {
+    font-size: 2em;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+form input[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    margin: 10px 0;
+    font-size: 1.1em;
+    cursor: pointer;
+    border-radius: 50px;
+    width: 70%;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+form input[type="submit"]:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+form input[type="submit"]:active {
+    transform: scale(1);
+}
+
+/* Estilo de texto y botones */
+form input[type="submit"]:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+@media (max-width: 600px) {
+    #seleccion_rol_form {
+        padding: 20px;
+        width: 90%;
+    }
+
+    #seleccion_rol_form h2 {
+        font-size: 1.8em;
+    }
+
+    form input[type="submit"] {
+        width: 80%;
+    }
+}

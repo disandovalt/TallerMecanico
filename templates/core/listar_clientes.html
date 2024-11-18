@@ -14,10 +14,15 @@
         <div class="card p-4">
             <div class="col-auto">
             </div>
-            <form method="GET" class="mb-3">
-                <div class="input-group">
-                    <input type="text" name="buscar" class="form-control" placeholder="Buscar por RUT" value="{{ request.GET.buscar }}">
-                    <button type="submit" class="btn btn-primary">Buscar</button>
+            <form method="GET" class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label for="rut_filter" class="form-label">Filtrar por RUT:</label>
+                    <input type="text" class="form-control" id="rut_filter" name="rut" 
+                           value="{{ request.GET.rut }}" placeholder="Ingrese RUT">
+                </div>
+                <div class="col-auto" style="margin-top: 32px;">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'listar_clientes' %}" class="btn btn-secondary">Limpiar</a>
                 </div>
             </form>
             
@@ -54,6 +59,11 @@
                 </tbody>
                 
             </table>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+            <a href="{% url 'admin_dashboards' %}" class="btn btn-dark">
+                Volver
+            </a>
         </div>
     </div>
 

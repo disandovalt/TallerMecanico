@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Mis Reservas</h2>
+    
+    {% if reservas %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Vehículo</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reserva in reservas %}
+                    <tr>
+                        <td>{{ reserva.fecha }}</td>
+                        <td>{{ reserva.hora }}</td>
+                        <td>{{ reserva.marca_vehiculo }} {{ reserva.modelo_vehiculo }} ({{ reserva.ano_vehiculo }})</td>
+                        <td>{{ reserva.descripcion_servicio }}</td>
+                        <td><span class="badge badge-success">Confirmada</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No tienes reservas programadas.
+        </div>
+    {% endif %}
+    
+    <a href="{% url 'crear_reserva' %}" class="btn btn-primary">Nueva Reserva</a>
+</div>
+{% endblock %}

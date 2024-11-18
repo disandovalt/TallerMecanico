@@ -22,13 +22,14 @@ from django.utils import timezone
 from datetime import datetime
 from django.utils.formats import date_format
 from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .permissions import setup_roles_and_permissions, role_required
 from django.db.models import Count
 from .forms import UsuarioEditForm
 from django.contrib.auth import get_user_model
 from core.forms import CustomUserCreationForm
 from .models import Producto
+
 
 User = get_user_model()
 usuarios = User.objects.all()
@@ -44,29 +45,101 @@ def seleccion_rol(request):
         if rol == 'admin':
             return redirect('login_admin')
         elif rol == 'usuario':
-            return redirect('login_usuario')
+            return redirect('login_cliente')
     
     return render(request, '../templates/core/seleccion_rol.html')
 
 
 # Página de inicio de sesión
 def login_view(request):
-    rol = request.GET.get('rol', 'user')  # Obtiene el rol desde la URL (por defecto 'user')
-    form = AuthenticationForm()
-
     if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Autenticación del usuario
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Si las credenciales son correctas, loguear al usuario
             login(request, user)
+            messages.success(request, "Inicio de sesión exitoso.")
+            return redirect('seleccion_rol')  # O la URL a donde redirigir al usuario
+        else:
+            # Si las credenciales son incorrectas
+            messages.error(request, "Credenciales incorrectas.")
+    
+    # Si no es un POST, simplemente renderiza el formulario de login
+    return render(request, 'core/base.html')
 
-            # Redirigir según el rol
-            if rol == 'admin':
-                return redirect('/admin')  # Redirige al panel de administración
-            else:
-                return redirect('/')  # Redirige a la página principal
+def redirect_by_role(user):
+    if user.rol == 'administrador':
+        return redirect('admin_dashboards')
+    elif user.rol == 'mecanico':
+        return redirect('mecanico_dashboard')
+    elif user.rol == 'recepcionista':
+        return redirect('recepcionista_dashboard')
+    elif user.rol == 'usuario':
+        try:
+            cliente = Cliente.objects.get(email=user.email)
+            return redirect('usuario_dashboard')
+        except Cliente.DoesNotExist:
+            messages.warning(user, 'No tiene un perfil de cliente asociado')
+            return redirect('login')
+    return redirect('login')
 
-    return render(request, 'core/login.html', {'form': form, 'rol': rol})
+def es_mecanico(user):
+    return user.rol == 'mecanico'
+
+def es_recepcionista(user):
+    return user.rol == 'recepcionista'
+
+def es_administrador(user):
+    return user.rol == 'administrador'
+
+@login_required
+@user_passes_test(es_mecanico)
+def mecanico_dashboard(request):
+    ordenes = OrdenTrabajo.objects.filter(estado='Pendiente')
+    inventario = Inventario.objects.all()
+    return render(request, 'mecanico/dashboard.html', {
+        'ordenes': ordenes,
+        'inventario': inventario
+    })
+
+@login_required
+@user_passes_test(es_recepcionista)
+def recepcionista_dashboard(request):
+    clientes = Cliente.objects.all()
+    ordenes = OrdenTrabajo.objects.all()
+    return render(request, 'recepcionista/dashboard.html', {
+        'clientes': clientes,
+        'ordenes': ordenes
+    })
+
+@login_required
+@user_passes_test(es_administrador)
+def admin_dashboard(request):
+    usuarios = Usuario.objects.all()
+    productos = Producto.objects.all()
+    return render(request, 'admin/dashboard.html', {
+        'usuarios': usuarios,
+        'productos': productos
+    })
+
+@login_required
+def usuario_dashboard(request):
+    try:
+        # Intentar obtener el cliente asociado al usuario
+        cliente = Cliente.objects.get(email=request.user.email)
+        ordenes = OrdenTrabajo.objects.filter(cliente=cliente)
+        
+        return render(request, 'usuario/dashboard.html', {
+            'ordenes': ordenes,
+            'cliente': cliente
+        })
+    except Cliente.DoesNotExist:
+        messages.error(request, 'No se encontró un cliente asociado a este usuario')
+        return redirect('login')
 
 
 def inicio(request):
@@ -80,25 +153,36 @@ def login_admin(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and user.is_staff:  # Verificar si es admin
             login(request, user)
-            return HttpResponseRedirect('/admin_dashboard/')  # Redirigir al dashboard de admin
+            return HttpResponseRedirect('/admin_dashboards/')  # Redirigir al dashboard de admin
         else:
             return render(request, 'core/login_admin.html', {'error': 'Credenciales incorrectas o no es administrador'})
     
     return render(request, 'core/login_admin.html')
 
-def login_usuario(request):
+def login_cliente(request):
     if request.method == 'POST':
-        username = request.POST['username']
+        email = request.POST['email']
         password = request.POST['password']
-        
-        user = authenticate(request, username=username, password=password)
-        if user is not None and not user.is_staff:  # Verificar que no sea admin
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
             login(request, user)
-            return HttpResponseRedirect('/user_dashboard/')  # Redirigir al dashboard de usuario
+            return redirect('home')  # O la página a la que deseas redirigir
         else:
-            return render(request, 'core/login_usuario.html', {'error': 'Credenciales incorrectas o no es un usuario'})
-    
-    return render(request, 'core/login_usuario.html')
+            return render(request, 'core\login_cliente.html', {'error': 'Credenciales incorrectas'})
+    return render(request, 'core\login_cliente.html')
+
+from core.forms import RegistroClienteForm
+
+def registrar_cliente(request):
+    if request.method == 'POST':
+        form = RegistroClienteForm(request.POST)
+        if form.is_valid():
+            form.save() 
+            return redirect('') 
+    else:
+        form = ClienteForm()
+
+    return render(request, 'core/registrar_cliente.html', {'form': form})
 
 @login_required
 def dashboard(request):
@@ -128,7 +212,7 @@ def dashboard(request):
             total=Count('id')
         ).order_by('fecha__date'),
     }
-
+    
     return render(request, 'core/admin_dashboards.html', context)
 def register(request):
     if request.method == 'POST':
@@ -247,16 +331,6 @@ def eliminar_inventario(request, inventario_id):
     inventario = get_object_or_404(Inventario, id=inventario_id)
     inventario.delete()
     return redirect('core/listar_inventarios.html')
-
-
-def listar_clientes(request):
-    buscar = request.GET.get('buscar', '')  # Obtén el término de búsqueda
-    if buscar:
-        clientes = Cliente.objects.filter(rut__icontains=buscar)  # Filtrar por RUT que contenga el término
-    else:
-        clientes = Cliente.objects.all()  # Mostrar todos los clientes si no hay búsqueda
-
-    return render(request, 'core/listar_clientes.html', {'clientes': clientes})
 
 
 class ListarClientesView(ListView):
@@ -446,6 +520,74 @@ def listar_inventarios(request):
 
 
 def eliminar_orden_trabajo(request, orden_id):
-    orden = get_object_or_404(OrdenTrabajo, id=orden_id)
+    orden = get_object_or_404(Cliente, id=orden_id)
     orden.delete()
     return redirect(reverse('core/admin_dashboards'))  # Ajusta esta URL según tu proyecto
+
+def filtrar_clientes(request):
+    rut_filter = request.GET.get('rut', '')  # Obtiene el valor del filtro del formulario
+
+    # Filtrar los clientes
+    if rut_filter:
+        clientes = Cliente.objects.filter(rut__icontains=rut_filter)  # Filtra por coincidencia parcial del RUT
+    else:
+        clientes = Cliente.objects.all()  # Muestra todos los clientes si no hay filtro
+
+    return render(request, 'core/listar_clientes.html', {
+        'clientes': clientes,  # Asegúrate de usar 'clientes' en el contexto
+    })
+
+class RegistroClienteForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    confirmar_contrasena = forms.CharField(widget=forms.PasswordInput)
+
+    class Meta:
+        model = Cliente
+        fields = ['rut', 'nombre', 'apellido', 'telefono', 'email', 'direccion', 'contraseña']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirmar_contrasena = cleaned_data.get('confirmar_contrasena')
+
+        if password != confirmar_contrasena:
+            raise forms.ValidationError('Las contraseñas no coinciden')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        cliente = super().save(commit=False)
+        user = User.objects.create_user(username=cliente.email, email=cliente.email, password=self.cleaned_data['password'])
+        cliente.usuario = user  # Relacionamos el cliente con el usuario creado
+        if commit:
+            cliente.save()
+        return cliente
+    
+from .forms import ReservaForm
+from .models import Reserva
+    
+@login_required
+def crear_reserva(request):
+    if request.method == 'POST':
+        form = ReservaForm(request.POST)
+        if form.is_valid():
+            reserva = form.save(commit=False)
+            # Verificar si el usuario tiene un cliente asociado
+            try:
+                reserva.cliente = request.user.cliente
+            except AttributeError:
+                messages.error(request, 'El usuario no tiene un cliente asociado.')
+                return redirect('perfil_cliente')  # Redirigir al perfil de cliente (ajusta la vista como sea necesario)
+
+            reserva.save()
+            messages.success(request, '¡Reserva creada exitosamente!')
+            return redirect('ver_reservas')
+    else:
+        form = ReservaForm()
+
+    return render(request, 'core/reserva.html', {'form': form})
+
+@login_required
+def ver_reservas(request):
+    reservas = Reserva.objects.filter(cliente=request.user.cliente)
+    return render(request, 'core/ver_reservas.html', {'reservas': reservas})
