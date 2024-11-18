@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from .models import OrdenTrabajo, Inventario, Cliente
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from core.models import Producto
 
 class CustomUserCreationForm(UserCreationForm):
     ROLES = [
@@ -144,3 +145,19 @@ class UsuarioForm(UserCreationForm):
     class Meta:
         model = get_user_model()
         fields = ['email', 'nombre', 'telefono', 'direccion', 'rol', 'is_active']
+
+
+class ProductoForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = ['nombre', 'descripcion', 'cantidad', 'precio']
+
+class OrdenTrabajoForm(forms.ModelForm):
+    class Meta:
+        model = OrdenTrabajo
+        fields = ['cliente', 'descripcion', 'estado']  # Ajusta los campos según lo necesario
+        widgets = {
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+            'cliente': forms.Select(attrs={'class': 'form-control'}),
+        }

@@ -28,6 +28,7 @@ from django.db.models import Count
 from .forms import UsuarioEditForm
 from django.contrib.auth import get_user_model
 from core.forms import CustomUserCreationForm
+from .models import Producto
 
 User = get_user_model()
 usuarios = User.objects.all()
@@ -206,29 +207,21 @@ def crear_orden_trabajo(request):
         'form': form,
         'titulo': 'Crear Nueva Orden de Trabajo'
     })
-
+from core.models import OrdenTrabajo
+from core.forms import OrdenTrabajoForm
 # Vista para editar una orden de trabajo existente
-def editar_orden(request, orden_id):
+def editar_orden_trabajo(request, orden_id):
     orden = get_object_or_404(OrdenTrabajo, id=orden_id)
+    
     if request.method == 'POST':
         form = OrdenTrabajoForm(request.POST, instance=orden)
         if form.is_valid():
             form.save()
-            return redirect('listar_ordenes')
+            return redirect('listar_ordenes')  # Ajusta el nombre de esta URL según tu proyecto
     else:
         form = OrdenTrabajoForm(instance=orden)
-    return render(request, 'core/editar_orden.html', {'form': form})
 
-# Vista para eliminar una orden de trabajo
-def eliminar_orden(request, orden_id):
-    orden = get_object_or_404(OrdenTrabajo, id=orden_id)
-    if request.method == 'POST':
-        orden.delete()
-        return redirect('listar_ordenes')
-    return render(request, 'core/eliminar_orden.html', {'orden': orden})
-
-
-
+    return render(request, 'core/editar_orden.html', {'form': form, 'orden': orden})
 
 def listar_inventarios(request):
     inventarios = Inventario.objects.all()
@@ -257,8 +250,14 @@ def eliminar_inventario(request, inventario_id):
 
 
 def listar_clientes(request):
-    clientes = Cliente.objects.all()
+    buscar = request.GET.get('buscar', '')  # Obtén el término de búsqueda
+    if buscar:
+        clientes = Cliente.objects.filter(rut__icontains=buscar)  # Filtrar por RUT que contenga el término
+    else:
+        clientes = Cliente.objects.all()  # Mostrar todos los clientes si no hay búsqueda
+
     return render(request, 'core/listar_clientes.html', {'clientes': clientes})
+
 
 class ListarClientesView(ListView):
     model = Cliente
@@ -426,3 +425,27 @@ def crear_usuario(request):
         form = CustomUserCreationForm()  # Si es un GET, solo muestra el formulario vacío
 
     return render(request, 'core/crear_usuario.html', {'form': form})
+
+from .forms import ProductoForm
+
+
+def crear_producto(request):
+    if request.method == 'POST':
+        form = ProductoForm(request.POST)
+        if form.is_valid():
+            form.save()  # Guarda el producto en la base de datos
+            return redirect('listar_inventarios')  # Redirige a la lista de inventarios
+    else:
+        form = ProductoForm()
+
+    return render(request, 'core/crear_inventario.html', {'form': form})
+
+def listar_inventarios(request):
+    productos = Producto.objects.all()
+    return render(request, 'core/listar_inventarios.html', {'productos': productos})
+
+
+def eliminar_orden_trabajo(request, orden_id):
+    orden = get_object_or_404(OrdenTrabajo, id=orden_id)
+    orden.delete()
+    return redirect(reverse('core/admin_dashboards'))  # Ajusta esta URL según tu proyecto

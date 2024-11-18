@@ -29,7 +29,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('login/admin/', views.login_admin, name='login_admin'),
     path('login/usuario/', views.login_usuario, name='login_usuario'),
-    path('admin_dashboard/', views.dashboard, name='admin_dashboard'),
+    path('admin_dashboards/', views.dashboard, name='admin_dashboards'),
 
     path('listar_usuarios/', views.listar_usuarios, name='listar_usuarios'),
     path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
@@ -39,8 +39,8 @@ urlpatterns = [
     # URLs para CRUD de Órdenes de Trabajo
     path('ordenes/', views.listar_ordenes, name='listar_ordenes'),
     path('ordenes/crear/', views.crear_orden_trabajo, name='crear_orden_trabajo'),
-    path('ordenes/editar/<int:orden_id>/', views.editar_orden, name='editar_orden'),
-    path('ordenes/eliminar/<int:orden_id>/', views.eliminar_orden, name='eliminar_orden'),
+    path('ordenes/editar/<int:orden_id>/', views.editar_orden_trabajo, name='editar_orden'),
+    path('ordenes/eliminar/<int:orden_id>/', views.eliminar_orden_trabajo, name='eliminar_orden'),
 
     # URLs para CRUD de Inventario
     path('listar_inventarios/', views.listar_inventarios, name='listar_inventarios'),
